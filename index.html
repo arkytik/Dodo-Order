@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ДоДо Пицца</title>
+    <link rel="icon" href="https://dodopizza.ru/favicon.ico">
+    <link rel="icon" href="https://dodopizza.ru/icon.svg" type="image/svg+xml" sizes="any">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <button class="header-back">
+            <svg width="64px" height="64px" viewBox="0 0 1024 1024" fill="#FFFFFF" class="icon"  version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M669.6 849.6c8.8 8 22.4 7.2 30.4-1.6s7.2-22.4-1.6-30.4l-309.6-280c-8-7.2-8-17.6 0-24.8l309.6-270.4c8.8-8 9.6-21.6 2.4-30.4-8-8.8-21.6-9.6-30.4-2.4L360.8 480.8c-27.2 24-28 64-0.8 88.8l309.6 280z" fill="" /></svg>
+        </button>
+        <h5 class="header-title" id="title">Заказ №140</h5>
+    </header>
+
+    <main class="shop">
+        <ul class="cart" id="cart">
+        </ul>
+
+        <div class="total">
+            <p class="total__text" id="total">Сумма 888₽</p>
+            <a href="dodopizza://payment" class="total__link">Чек</a>
+        </div>
+
+        <div class="summary">
+            <p class="summary__name">Пиццерия</p>
+            <h5 class="summary_info" id="pizzeria">Москва, бульвар Жулебина, 15</h5>
+        </div>
+
+        <div class="summary">
+            <p class="summary__name">Время заказа</p>
+            <h5 class="summary_info" id="time">2 февраля 2025 г. 20:10</h5>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <a href="dodopizza://order" class="footer-link">Повторить заказ</a>
+    </footer>
+
+    <script type="text/javascript">
+        const cartEl = document.querySelector("#cart");
+        const timeEl = document.querySelector("#time");
+        const totalEl = document.querySelector("#total");
+        const titleEl = document.querySelector("#title");
+        const pizzeriaEl = document.querySelector("#pizzeria");
+
+        const get = name => {
+            return (name=(new RegExp('[?&]'+encodeURIComponent(name)+'=([^&]*)')).exec(location.search)) ? decodeURIComponent(name[1]) : null;
+        }
+
+        const getOrder = _ => {
+            let order = get("order");
+            if (!order) return;
+
+            return JSON.parse(order);
+        }
+
+        const prepItem = (name, cover, price, group, is_new = false) => {
+            return `
+            <li class="cart-item">
+                <div class="item-cover">
+                    ${is_new ? '<span class="item-cover__tag">Новинка</span>' : ''}
+                    <img src="${cover}" alt="item" class="item-cover__img">
+                </div>
+                <div class="item-info">
+                    <h5 class="item-title">${name}</h5>
+                    <h5 class="item-title__price">${price} ₽</h5>
+                    <p class="item-desc">${group}</p>
+                </div>
+            </li>
+            `;
+        }
+
+        const fillOrder = _ => {
+            var options = {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                timezone: 'UTC'
+            };
+
+            const orderData = getOrder();
+            if (!orderData) return;
+
+            const orderNum = orderData.orderNumber;
+            const orderSum = orderData.totalPrice;
+            const orderDate = new Date(orderData?.guaranteedDeliveryDateUtc ?? orderData?.startExecutionDateUtc);
+            const orderAddr = orderData?.deliveryAddress ?? orderData?.address;
+            const orderCart = orderData.productCartItems;
+            
+            timeEl.innerHTML = `${orderDate.toLocaleString('ru', options)} ${orderDate.getHours()}:${orderDate.getMinutes()}`;
+            titleEl.innerHTML = `Заказ №${orderNum}`;
+            totalEl.innerHTML = `Сумма ${orderSum}₽`;
+            pizzeriaEl.innerHTML = orderAddr;
+
+            orderCart.forEach(item => {
+                let itemHTML = prepItem(item.name, item.imageUrl, item.totalPrice, item?.sizeGroupName ?? item?.doughTypeName);
+
+                cartEl.insertAdjacentHTML("afterend", itemHTML);
+            });
+        }
+
+        window.onload = fillOrder;
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            background-color: #000000;
+        }
+
+        html, body, .shop {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        a, p, span, h1, h2, h3, h4, h5, button, input {
+            color: #FFFFFF;
+            font-family: "Open Sans", sans-serif;
+            font-weight: 400;
+        }
+
+        a {
+            color: rgb(255, 105, 0);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        button, input, a {
+            outline: none;
+            border: none;
+        }
+
+        ul, ol {
+            list-style: none;
+        }
+        
+        .shop {
+            padding: 1rem;
+            margin-top: 4rem;
+            z-index: 1;
+            margin-bottom: 4rem;
+        }
+
+        .header, .footer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem;
+            background-color: #000000;
+            z-index: 999;
+            overflow: hidden;
+
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .header-back {
+            position: relative;
+            width: 2rem;
+            height: 2rem;
+            font-size: 1rem;
+            background: transparent;
+            overflow: hidden;
+        }
+
+        .header-back img, .header-back svg {
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .header-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        .footer {
+            top: 100%;
+            transform: translateY(-100%);
+            background-color: #1C1C1E;
+            justify-content: center;
+            max-height: 6rem;
+            padding: 1rem;
+            z-index: 9999;
+        }
+
+        .footer-link {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #FFFFFF;
+            background-color: #FF6400;
+            width: 100%;
+            padding: .75rem 1rem;
+            text-align: center;
+            border-radius: 8rem;
+        }
+
+        .cart {
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .cart-item {
+            gap: 1rem;
+            width: 100%;
+
+            display: flex;
+            overflow: hidden;
+            padding: 1rem 0;
+            border-bottom: 2px solid #1C1C1E;
+        }
+
+        .item-cover {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 32vw;
+            height: 32vw;
+            overflow: hidden;
+        }
+
+        .item-cover__img {
+            width: 100%;
+            height: 100%;
+
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-repeat: no-repeat;
+        }
+
+        .item-cover__tag {
+            position: absolute;
+            top: 0;
+            left: 100%;
+            transform: translateX(-100%);
+            z-index: 99;
+            padding: .15rem .45rem;
+            border-radius: 1rem;
+            
+            font-size: .65rem;
+            color: #FFFFFF;
+            background-color: #FF6400;
+        }
+
+        .item-info {
+            gap: .45rem;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .total, .summary {
+            width: 100%;
+            padding: 1rem 0;
+            border-bottom: 2px solid #1C1C1E;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .total__text, .total__link {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .summary {
+            gap: .15rem;
+            justify-content: start;
+            flex-direction: column;
+            align-items: start;
+        }
+
+        .summary__name, .item-desc {
+            font-size: .75rem;
+            color: #666666;
+        }
+
+        .summary_info,.item-title, .item-title__price {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #FFFFFF;
+        }
+    </style>
+</body>
+</html>

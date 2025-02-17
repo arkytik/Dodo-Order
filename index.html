@@ -108,6 +108,34 @@
         window.onload = fillOrder;
     </script>
 
+    <script>
+        // Try to enter fullscreen programmatically
+        function requestFullscreen() {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) { /* Firefox */
+                document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) { /* IE/Edge */
+                document.documentElement.msRequestFullscreen();
+            }
+        }
+
+        // Attempt fullscreen on user interaction
+        document.addEventListener('click', requestFullscreen);
+        
+        // Prevent address bar from showing on scroll
+        window.addEventListener('resize', function() {
+            setTimeout(function() {
+                window.scrollTo(0, 1);
+            }, 0);
+        });
+
+        // Initial scroll to hide address bar
+        window.scrollTo(0, 1);
+    </script>
+
     <style>
         * {
             box-sizing: border-box;
